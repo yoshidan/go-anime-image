@@ -4,7 +4,7 @@
 
 ## Sample 
 * original image  
-<img src="./download/rail_romanesque_1.jpg" width="480px"/>
+<img src="./download/rail_romanesque_1.jpg" width="240"/>
 
 * cropped image  
 <img src="./face/0_rail_romanesque_1.jpg" width="120px"/> <img src="./face/1_rail_romanesque_1.jpg" width="120px"/> <img src="./face/2_rail_romanesque_1.jpg" width="120px"/> <img src="./face/3_rail_romanesque_1.jpg" width="120px"/> <img src="./face/4_rail_romanesque_1.jpg" width="120px"/> <img src="./face/5_rail_romanesque_1.jpg" width="120px"/> <img src="./face/6_rail_romanesque_1.jpg" width="120px"/>
