@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  scraping:
+    build:
+      context: .
+      dockerfile: Dockerfile.scraping
+    volumes:
+      - ./download:/go/src/app/download
+    environment:
+      SCRAPING_SITE: ${SCRAPING_SITE}
+      SCRAPING_KEYWORD: ${SCRAPING_KEYWORD}
+  cropping:
+    build:
+      context: .
+      dockerfile: Dockerfile.cropping
+    volumes:
+      - ./download:/usr/src/app/download
+      - ./face:/usr/src/app/face
