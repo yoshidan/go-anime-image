@@ -1,4 +1,6 @@
-# Download and Cropping face of Anime images
+# go-anime-image
+
+* Automatically download anime images and crop face
 
 ## Sample 
 * original image  
