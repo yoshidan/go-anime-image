@@ -35,5 +35,5 @@ func (Wallpaperboys) GetThumbnailQuery() string {
 }
 
 func (Wallpaperboys) GetBigImageQuery() string {
-	return "div.main_single_content > div.wallpaper-t-img > a"
+	return "div.main_single_content > div.wallpaper-t > a"
 }
