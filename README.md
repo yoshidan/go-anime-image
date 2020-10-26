@@ -48,7 +48,7 @@ docker-compose up scraping
 
 ## How to crop face
 
-* crop face for all files is `./face`
+* crop face for all `./download` files. output directory is `./face`
 
 ```
 docker-compose up cropping
