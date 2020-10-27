@@ -18,9 +18,6 @@ func main() {
 	config := &Config{}
 	envconfig.Process("", config)
 
-	url := fmt.Sprintf("https://%s/?s=%s", config.Site, config.Keyword)
-	fmt.Printf("start download from %s\n", url)
-
 	go func() {
 		sigint := make(chan os.Signal, 1)
 		signal.Notify(sigint, os.Interrupt)
@@ -30,5 +27,13 @@ func main() {
 		os.Exit(1)
 	}()
 
-	scraping.NewScraper(config.Site).Execute(url)
+	var site scraping.Site
+	if config.Site == "tsundora.com" {
+		site = scraping.NewTsundora(config.Keyword)
+	}else {
+		site = scraping.NewWallpaperboys(config.Keyword)
+	}
+	site.Download()
+
 }
+

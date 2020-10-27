@@ -1,6 +1,7 @@
 package scraping
 
 import (
+	"com.github.yoshidan/go-anime-image/scraping/internal"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
@@ -11,37 +12,51 @@ import (
 	"time"
 )
 
-type Scraper struct {
-	site Site
+
+type Tsundora struct {
+	url string
+	name string
 }
 
-func NewScraper(siteName string) Scraper{
-	if siteName == "tsundora.com" {
-		return Scraper{Tshundora{SiteAttribute{name: siteName}}}
+func NewTsundora(keyword string) *Tsundora {
+	name := "tsundora.com"
+	url := fmt.Sprintf("https://%s?s=%s", name, keyword)
+	return &Tsundora{url, name}
+}
+
+func (p *Tsundora) Download() {
+	scraper := &Scraper{
+		thumbnailQuery: "div.home_tall_box > div.home-img > a"	,
+		bigImageQuery: "div.single_inside_content > div.post-img > a",
+		name: p.name,
 	}
-	return Scraper{Wallpaperboys{SiteAttribute{name: siteName}}}
+	scraper.Execute(p.url)
 }
 
-func (s Scraper) Execute(url string) {
+type Scraper struct {
+	thumbnailQuery string
+	bigImageQuery string
+	name string
+}
 
+func (s *Scraper) Execute(url string) {
+	fmt.Printf("start download from %s\n", url)
 	doc, err := s.getFirstPage(url)
 	if err != nil {
 		fmt.Printf("%+v", err)
 		os.Exit(1)
 	}
-
 	s.downloadWhileHasNext(doc)
-
 }
 
-func (s Scraper) downloadWhileHasNext(doc *goquery.Document) {
-	doc.Find(s.site.GetThumbnailQuery()).Each(func(index int, selection *goquery.Selection) {
+func (s *Scraper) downloadWhileHasNext(doc *goquery.Document) {
+	doc.Find(s.thumbnailQuery).Each(func(index int, selection *goquery.Selection) {
 		title := selection.AttrOr("title", "notitle")
 		link := s.handleLink(selection)
 		if link == nil {
 			return
 		}
-		link.Find(s.site.GetBigImageQuery()).Each(func(i int, selection *goquery.Selection) {
+		link.Find(s.bigImageQuery).Each(func(i int, selection *goquery.Selection) {
 			imagePage := s.handleLink(selection)
 			if imagePage == nil {
 				return
@@ -55,10 +70,10 @@ func (s Scraper) downloadWhileHasNext(doc *goquery.Document) {
 	//seek nextPage if exist
 	nextPage := doc.Find("div.pagenavi").Children().Last().AttrOr("href", "")
 	if nextPage != "" {
-		fmt.Printf("next page %s : sleep 1 miniute for avoiding server down \n", nextPage)
-		time.Sleep(1 * time.Minute)
+		fmt.Printf("next page %s : sleep 30 second for avoiding server down \n", nextPage)
+		time.Sleep(30 * time.Second)
 		fmt.Printf("start download at %s\n", nextPage)
-		response, err := NewRequest(nextPage, s.site.Name())
+		response, err := internal.NewRequest(nextPage, s.name)
 		if err != nil {
 			fmt.Printf("skip %s because %+v", nextPage , err)
 			return
@@ -69,8 +84,8 @@ func (s Scraper) downloadWhileHasNext(doc *goquery.Document) {
 	}
 }
 
-func (s Scraper) getFirstPage(url string) (*goquery.Document, error ){
-	resp, e := NewRequest(url, s.site.Name())
+func (s *Scraper) getFirstPage(url string) (*goquery.Document, error ){
+	resp, e := internal.NewRequest(url, s.name)
 	if e != nil {
 		return nil, e
 	}
@@ -79,7 +94,7 @@ func (s Scraper) getFirstPage(url string) (*goquery.Document, error ){
 	var data *http.Response
 	if resp.StatusCode == 307 {
 		targetUrl := resp.Header.Get("Location")
-		targetResp, e := NewRequest(targetUrl, s.site.Name())
+		targetResp, e := internal.NewRequest(targetUrl, s.name)
 		if e != nil {
 			return nil, e
 		}
@@ -94,7 +109,7 @@ func (s Scraper) getFirstPage(url string) (*goquery.Document, error ){
 }
 
 
-func (s Scraper) handleLink(selection *goquery.Selection) *goquery.Document{
+func (s *Scraper) handleLink(selection *goquery.Selection) *goquery.Document{
 	url := selection.AttrOr("href", "")
 	if url == "" {
 		return nil
@@ -109,7 +124,7 @@ func (s Scraper) handleLink(selection *goquery.Selection) *goquery.Document{
 	return doc
 }
 
-func (s Scraper) handleImg(_ string, selection *goquery.Selection) {
+func (s *Scraper) handleImg(_ string, selection *goquery.Selection) {
 	url := selection.AttrOr("src", "")
 	if url == "" {
 		return
@@ -128,7 +143,7 @@ func (s Scraper) handleImg(_ string, selection *goquery.Selection) {
 	fmt.Printf("start download from %s\n" , url)
 
 	// download images
-	resp, err := NewRequest(url, s.site.Name())
+	resp, err := internal.NewRequest(url, s.name)
 	if err != nil {
 		fmt.Printf("skip %s because %+v", url, err)
 		return
